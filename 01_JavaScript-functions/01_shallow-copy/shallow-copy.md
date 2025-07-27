@@ -1,20 +1,44 @@
-### JavaScript浅拷贝:
-对象的浅拷贝是属性与拷贝源对象属性共享相同的引用(指向相同的底层值)的副本。因此，当你更改源对象或副本时，也可能导致应一个对象发生更改。    
+### JavaScript浅拷贝 :
+在JavaScript中, 浅拷贝就是创建一个新的对象, 然后将原对象的属性值复制到新的对象中。如果属性值是原始数据类型, 那么新对象和原对象各自拥有独立的值, 修改其中一个对象的属性值, 不会影响另一个对象对应的属性值。如果属性值是引用类型(比如对象、数组等), 那么拷贝的只是引用地址, 两个引用类型的属性会共享同一块内存空间, 修改其中一个会影响另外一个。这就是浅拷贝, 对于新对象和原对象, 是两个完全独立的对象, 但是对于内层的引用类型属性, 指向的仍然是同一个对象, 共享同一块内存空间。   
 
-如果两个对象o1和o2是浅拷贝那么 :    
+### 浅拷贝的实现方式及应用 :      
+ - Object.assign : 合并一个或多个对象
 
- - 它们不是同一个对象(o1 !== o2)   
- - o1和o2具有相同的属性名和属性值且顺序相同    
- - 它们的原型链相等    
+```javascript
+const obj = {
+  name: 'Jack',
+  friend: {
+    name: 'Peter'
+  }
+}
 
-对于浅拷贝，只拷贝对象或数组的第一层内容，不处理嵌套对象或数组的深层拷贝。因此 :      
+// newObj为obj的浅拷贝后的对象, 引用类型属性共享一块内存空间
+const newObj = Object.assign({}, obj)
+```
 
- - 修改副本的第一层属性不会影响源对象  
- - 修改副本的嵌套对象属性会影响源对象    
+ - 展开运算符(...) : 
 
+```javascript
+const obj = {
+  name: 'Jack',
+  friend: {
+    name: 'Peter'
+  }
+}
 
-### 浅拷贝的简单实现(只处理普通对象{}和数组[]) :    
-定义一个判断是普通对象和数组的方法，该方法通过call调用Object原型对象的toString方法得到一个'[object Constructor(构造函数)]'形式的字符串 :    
+// 展开运算符, 解构obj对象, 获得第一层的每一个属性和属性值
+const newObj = {
+  ...obj
+}
+
+// 数组的浅拷贝
+const arr1 = [{ name: 'a' }, { name: 'b' }, { name: 'c' }]
+// arr2中的元素(引用类型)和arr1中的元素(引用类型)为同一个对象
+const arr2 = [...arr1]
+```
+
+### 浅拷贝的自定义方法实现(只处理普通对象{}和数组[]) :    
+定义一个判断是普通对象和数组的方法, 该方法通过call调用Object原型对象的toString方法得到一个'[object Constructor(构造函数)]'形式的字符串 :    
 
 ```javascript
 function getObjectTypeStr(originValue) {
@@ -28,7 +52,7 @@ function getObjectTypeStr(originValue) {
 function shallowCopy(originValue) {}
 ```   
 
-方法内部首先判断传入的originValue是否为null/undefined/其他原始类型/function类型，如果是这些类型那么直接返回 : 
+方法内部首先判断传入的originValue是否为null/undefined/其他原始类型/function类型, 如果是这些类型那么直接返回 : 
 
 ```javascript
 if (originValue === null || originValue === undefined || typeof originValue !== 'object') {
@@ -36,7 +60,7 @@ if (originValue === null || originValue === undefined || typeof originValue !== 
 }
 ```   
 
-接着定义一个newValue变量初始值为null，通过之前定义的getObjectTypeStr方法判断传入的值为普通对象还是数组，如果为数组，那么直接通展开运算符[...originValue]得到一个新的数组(第一层)赋值给newValue。如果为普通对象，也通过展开运算符{...originValue}(第一层)赋值给newValue，最后将newValue作为返回值返回 : 
+接着定义一个newValue变量初始值为null, 通过之前定义的getObjectTypeStr方法判断传入的值为普通对象还是数组, 如果为数组, 那么直接通展开运算符[...originValue]得到一个新的数组(第一层)赋值给newValue。如果为普通对象, 也通过展开运算符{...originValue}(第一层)赋值给newValue, 最后将newValue作为返回值返回 : 
 
 ```javascript
 let newValue = null   
@@ -83,3 +107,12 @@ function shallowCopy(originValue) {
 }
 ```
 
+### 浅拷贝的优点 : 
+ - 性能高效, 实现方式简单便捷
+ - 当需要共享底层数据时, 可以保留引用关系, 很有价值
+ - 避免不必要的大数据复制
+
+### 浅拷贝的缺点
+ - 嵌套引用类型数据会造成污染, 修改会双向影响
+ - 不适用于深隔离场景
+ - 浅拷贝仅复制自身可枚举的属性
