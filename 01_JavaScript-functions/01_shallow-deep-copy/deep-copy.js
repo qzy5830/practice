@@ -1,10 +1,6 @@
-function getObjectTypeStr(originValue) {
-  return Object.prototype.toString.call(originValue)
-}
-
 function deepCopy(originValue, wm = new WeakMap()) {
   // Set
-  if (getObjectTypeStr(originValue) === '[object Set]') {
+  if (originValue.constructor === Set) {
     const set = new Set()
     for (const setItem of originValue) {
       set.add(deepCopy(setItem, wm))
@@ -13,7 +9,7 @@ function deepCopy(originValue, wm = new WeakMap()) {
   }
 
   // Map
-  if (getObjectTypeStr(originValue) === '[object Map]') {
+  if (originValue.constructor === Map) {
     const map = new Map()
     for (const [mapKey, mapValue] of originValue) {
       map.set(deepCopy(mapKey, wm), deepCopy(mapValue, wm))
@@ -22,12 +18,12 @@ function deepCopy(originValue, wm = new WeakMap()) {
   }
 
   // Date
-  if (getObjectTypeStr(originValue) === '[object Date]') {
+  if (originValue.constructor === Date) {
     return new Date(originValue.getTime())
   }
 
   // RegExp
-  if (getObjectTypeStr(originValue) === '[object RegExp]') {
+  if (originValue.constructor === RegExp) {
     const regExp = new RegExp(originValue.source, originValue.flags)
     regExp.lastIndex = originValue.lastIndex
     return regExp

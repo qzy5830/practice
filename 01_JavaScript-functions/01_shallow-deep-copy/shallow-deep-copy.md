@@ -1,8 +1,12 @@
-### JavaScript浅拷贝 :
-在JavaScript中, 浅拷贝就是创建一个新的对象, 然后将原对象的属性值复制到新的对象中。如果属性值是原始数据类型, 那么新对象和原对象各自拥有独立的值, 修改其中一个对象的属性值, 不会影响另一个对象对应的属性值。如果属性值是引用类型(比如对象、数组等), 那么拷贝的只是引用地址, 两个引用类型的属性会共享同一块内存空间, 修改其中一个会影响另外一个。这就是浅拷贝, 对于新对象和原对象, 是两个完全独立的对象, 但是对于内层的引用类型属性, 指向的仍然是同一个对象, 共享同一块内存空间。   
+# JavaScript浅拷贝与深拷贝
 
-### 浅拷贝的实现方式及应用     
- - Object.assign : 合并一个或多个对象
+### 前言
+在JavaScript中, 浅拷贝 (Shallow Copy) 和深拷贝 (Deep Copy) 是处理对象复制的两种核心方式, 主要作用是控制复制后新对象与原对象之间的关联关系据。它们的核心区别在于对引用类型属性的处理方式, 这也决定了它们的应用场景和价值。
+
+## 浅拷贝的实现方式及应用  
+浅拷贝的核心是仅复制对象的第一层属性。如果属性是基本数据类型 (number、string、boolean), 会直接复制。如果是引用类型(Object、Array、Function), 则复其内存地址 (引用), 而非之际内容。因此, 浅拷贝后的新对象与原对象会共享内部引用类型属性的底层数据
+
+ - Object.assign
 
 ```javascript
 const obj = {
@@ -12,11 +16,11 @@ const obj = {
   }
 }
 
-// newObj为obj的浅拷贝后的对象, 引用类型属性共享一块内存空间
+// newObj为obj浅拷贝后的对象, 引用类型属性共享一块内存空间
 const newObj = Object.assign({}, obj)
 ```
 
- - 展开运算符(...) : 
+ - 展开运算符(...) 
 
 ```javascript
 const obj = {
@@ -37,51 +41,7 @@ const arr1 = [{ name: 'a' }, { name: 'b' }, { name: 'c' }]
 const arr2 = [...arr1]
 ```
 
-### 浅拷贝的自定义方法实现(只处理普通对象{}和数组[]) 
-定义一个判断是普通对象和数组的方法, 该方法通过call调用Object原型对象的toString方法得到一个'[object Constructor(构造函数)]'形式的字符串  
-
-```javascript
-function getObjectTypeStr(originValue) {
-  return Object.prototype.toString.call(originValue)
-}
-```  
-
-定义shallowCopy具体的浅拷贝实现方法
-     
-```javascript  
-function shallowCopy(originValue) {}
-```   
-
-方法内部首先判断传入的originValue是否为null/undefined/其他原始类型/function类型, 如果是这些类型那么直接返回
-
-```javascript
-if (originValue === null || originValue === undefined || typeof originValue !== 'object') {
-  return originValue
-}
-```   
-
-接着定义一个newValue变量初始值为null, 通过之前定义的getObjectTypeStr方法判断传入的值为普通对象还是数组, 如果为数组, 那么直接通展开运算符[...originValue]得到一个新的数组(第一层)赋值给newValue。如果为普通对象, 也通过展开运算符{...originValue}(第一层)赋值给newValue, 最后将newValue作为返回值返回
-
-```javascript
-let newValue = null   
-
-// 数组   
-if (getObjectTypeStr(originValue) === '[object Array]') {
-  newValue = [...originValue]
-}   
-
-// 对象
-if (getObjectTypeStr(originValue) === '[object Object]') {
-  newValue = {
-    ...originValue
-  }
-}
-
-return newValue
-```  
-
-shallowCopy浅拷贝方法完整的实现
-
+- 自定义浅拷贝方法shallowCopy的实现
 ```javascript
 function shallowCopy(originValue) {
   // null/undefined/原始类型/function类型
@@ -92,12 +52,12 @@ function shallowCopy(originValue) {
   let newValue = null
 
   // 数组
-  if (getObjectTypeStr(originValue) === '[object Array]') {
+  if (originValue.constructor === Array) {
     return [...originValue]
   }
 
   // 对象
-  if (getObjectTypeStr(originValue) === '[object Object]') {
+  if (originValue.constructor === Object) {
     return {
       ...originValue
     }
@@ -107,12 +67,113 @@ function shallowCopy(originValue) {
 }
 ```
 
-### 浅拷贝的优点
- - 性能高效, 实现方式简单便捷
- - 当需要共享底层数据时, 可以保留引用关系, 很有价值
- - 避免不必要的大数据复制
+## 深拷贝的实现方式及应用
+深拷贝的核心是递归复制对象的所有层级属性, 直到所有引用类型都被独立复制为一份全新的内存数据。最终新对象与原对象完全隔离, 修改新对象的任何属性 (包括深层嵌套的属性) 都不会影响原对象。
 
-### 浅拷贝的缺点
- - 嵌套引用类型数据会造成污染, 修改会双向影响
- - 不适用于深隔离场景
- - 浅拷贝仅复制自身可枚举的属性
+- JSON序列化实现深拷贝
+```javascript
+const obj = {
+  name: 'Jack',
+  age: 30,
+  friend: {
+    name: 'Peter'
+  }
+}
+
+const copyObj = JSON.parse(JSON.stringify(obj))
+```
+
+- JSON序列化存在的问题
+```javascript
+// 1.无法处理特殊类型
+// function => 丢失
+// undefined => 丢失
+// symbol => 丢失
+
+// 循环引用会报错
+const obj = {
+  name: 'Jack'
+}
+
+obj.self = obj
+// 报错
+const newObj = JSON.parse(JSON.stringify(obj))
+```
+
+- 自定义深拷贝方法deepCopy实现
+```javascript
+function deepCopy(originValue, wm = new WeakMap()) {
+  // Set
+  if (originValue.constructor === Set) {
+    const set = new Set()
+    for (const setItem of originValue) {
+      set.add(deepCopy(setItem, wm))
+    }
+    return set
+  }
+
+  // Map
+  if (originValue.constructor === Map) {
+    const map = new Map()
+    for (const [mapKey, mapValue] of originValue) {
+      map.set(deepCopy(mapKey, wm), deepCopy(mapValue, wm))
+    }
+    return map
+  }
+
+  // Date
+  if (originValue.constructor === Date) {
+    return new Date(originValue.getTime())
+  }
+
+  // RegExp
+  if (originValue.constructor === RegExp) {
+    const regExp = new RegExp(originValue.source, originValue.flags)
+    regExp.lastIndex = originValue.lastIndex
+    return regExp
+  }
+
+  // Symbol值
+  if (typeof originValue === 'symbol') {
+    return Symbol(originValue.description)
+  }
+
+  // null/undefined/function/原始类型
+  if (
+    originValue === null ||
+    originValue === undefined ||
+    typeof originValue !== 'object'
+  ) {
+    return originValue
+  }
+
+  // 是否保存过原始对象(解决循环引用)
+  if (wm.get(originValue)) {
+    return wm.get(originValue)
+  }
+
+  // 对象/数组
+  const newValue = Array.isArray(originValue) ? [] : {}
+
+  // 保存原始对象(循环引用)
+  wm.set(originValue, newValue)
+
+  // 遍历实例属性
+  for (const key in originValue) {
+    if (originValue.hasOwnProperty(key)) {
+      newValue[key] = deepCopy(originValue[key], wm)
+    }
+  }
+
+  // 遍历SymbolKeys
+  const symbolKeys = Object.getOwnPropertySymbols(originValue)
+  for (const symbolKey of symbolKeys) {
+    newValue[Symbol(symbolKey.description)] = deepCopy(originValue[symbolKey], wm)
+  }
+
+  return newValue
+}
+```
+
+### 总结
+浅拷贝和深拷贝的选择, 取决于具体的应用场景。如果只是简单的结构或者只需要复制第一层结构时, 那么浅拷贝提供了简洁高效的方案。如果是较为复杂的结构, 特别是内层属性包含了引用类型或多层嵌套以及特殊的类型时, 深拷贝能够确保内层数据的独立性和完整性。在实际开发中可以根据实际的需求, 权衡拷贝的深度与性能开销来选择适合的拷贝方式。
