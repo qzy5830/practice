@@ -10,7 +10,7 @@ function throttle(
   function _throttle(...args) {
     const nowTime = Date.now()
 
-    // 头部执行空值
+    // 头部执行控制
     if (!leading && !startTime) startTime = nowTime
 
     const waitTime = interval - (nowTime - startTime)
