@@ -3,6 +3,9 @@
 ### 前言
 在JavaScript中, instanceof关键字是一个操作符, 返回值为boolean。用于判断一个实例对象是否是某个构造函数创建出来的实例, 或者说实例对象是什么类型的实例对象。更具体一点就是检测构造函数的原型对象(构造函数的prototype属性指向的对象)是否在实例对象的原型链上。
 
+## JavaScript中的原型(Prototype)与原型链(Prototype Chain)
+我们先来了解一下JavaScript中的原型与原型链。首先, 每个JavaScript对象都有一个隐式原型([[Prototype]]), 可通过__proto__(非标准)或Object.getPrototype(obj)访问。而每个函数(构造函数)对象都具有一个显式原型, 可通过prototype属性访问, 用于定义实例共享的属性和方法。当访问一个对象的属性时, 首先会查找对象自身是有该属性, 如果找到则直接返回该属性值, 如果没有, 那么会查找对象的原型中是否有该属性, 如果找到则直接返回, 如果没有, 那么会继续查找原型的原型, 以此类推, 直到查找到Object.prototype, 此查找过程就形成以一个链条, 这个链条就成为原型链。而原型链的顶端就是Object.prototype, 如果查找到顶端还是没有, 那么就返回undefined。
+
 ## instanceof的用法
 ````javascript
 const obj = {
