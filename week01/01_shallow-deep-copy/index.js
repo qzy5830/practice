@@ -1,3 +1,32 @@
+// 浅拷贝
+function shallowCopy(originValue) {
+  // null/undefined/原始类型/function
+  if (
+    originValue === null ||
+    originValue === undefined ||
+    typeof originValue !== 'object'
+  ) {
+    return originValue
+  }
+
+  let newValue = null
+
+  // 数组
+  if (originValue.constructor === Array) {
+    newValue = [...originValue]
+  }
+
+  // 对象
+  if (originValue.constructor === Object) {
+    newValue = {
+      ...originValue
+    }
+  }
+
+  return newValue
+}
+
+// 深拷贝
 function deepCopy(originValue, wm = new WeakMap()) {
   // Set
   if (originValue.constructor === Set) {
