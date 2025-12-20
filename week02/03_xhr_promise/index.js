@@ -1,34 +1,49 @@
 // 基于Promise封装xhr请求
+function request(options) {
+  let { url, method = 'get', responseType = 'json', data = {} } = options
 
-function request() {
-  const xhr = new XMLHttpRequest()
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
 
-  xhr.onload = function () {
-    console.log(xhr.response)
-  }
+    // 监听加载完成
+    xhr.onload = function () {
+      // 根据响应码判断
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve(xhr.response)
+      } else {
+        reject({ status: xhr.status, message: xhr.statusText })
+      }
+    }
 
-  xhr.responseType = 'json'
+    // 设置相应类型
+    xhr.responseType = responseType
 
-  // get
-  // xhr.open('get', 'http://123.207.32.32:1888/02_param/get?name=why')
-  // xhr.send()
+    // 判断请求方法
+    if (method.toUpperCase() === 'GET') {
+      // 判断url是否包含query
+      if (Object.keys(data).length) {
+        const queryString = []
+        for (const key in data) {
+          queryString.push(`${key}=${data[key]}`)
+        }
 
-  // post(urlencoded)
-  // xhr.open('post', 'http://123.207.32.32:1888/02_param/posturl')
-  // xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
-  // xhr.send('name=Peter&age=30')
+        const jointSymbol = url.indexOf('?') !== -1 ? '&' : '?'
+        url = `${url}${jointSymbol}${queryString.join('&')}`
+      }
 
-  // post(FormData)
-  // xhr.open('post', 'http://123.207.32.32:1888/02_param/postform')
-  // const formData = new FormData()
-  // formData.append('name', 'Peter')
-  // formData.append('age', 30)
-  // xhr.send(formData)
-
-  // post(json)
-  xhr.open('post', 'http://123.207.32.32:1888/02_param/postjson')
-  xhr.setRequestHeader('Content-type', 'application/json')
-  xhr.send(JSON.stringify({ name: 'Jack', age: 30 }))
+      xhr.open(method, url)
+      xhr.send()
+    } else {
+      xhr.open(method, url)
+      xhr.send(JSON.stringify(data))
+    }
+  })
 }
 
-request()
+request({
+  url: 'http://abc?height=1.73',
+  data: {
+    name: 'Jack',
+    age: 30
+  }
+})
