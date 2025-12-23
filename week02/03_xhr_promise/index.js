@@ -1,5 +1,6 @@
 // 基于Promise封装xhr请求
 function request(options) {
+  // 默认配置
   const config = {
     method: 'GET',
     url: '',
@@ -11,14 +12,17 @@ function request(options) {
     }
   }
 
+  // 合并传入的配置
   Object.assign(config, options)
 
+  // 请求方法统一转为大写
   config.method = config.method.toUpperCase()
-  console.log(config)
+
+  // 基于Promise实现请求过程
   return new Promise((resolve, reject) => {
     let { method, url, data, timeout, headers, responseType } = config
 
-    // 创建xhr请求示例
+    // 创建xhr实例
     const xhr = new XMLHttpRequest() || new ActiveXObject('Microsoft.XMLHTTP')
 
     // 设置响应类型
